@@ -1,0 +1,40 @@
+{
+  "format": 1,
+  "restore": {
+    "F:\\software\\final evereything fixed\\report working before1\\report working\\script 3\\script\\examples\\Achievements\\projects\\verityflow\\runtime\\VerityFlow.Runtime.csproj": {}
+  },
+  "projects": {
+    "F:\\software\\final evereything fixed\\report working before1\\report working\\script 3\\script\\examples\\Achievements\\projects\\verityflow\\runtime\\VerityFlow.Runtime.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "F:\\software\\final evereything fixed\\report working before1\\report working\\script 3\\script\\examples\\Achievements\\projects\\verityflow\\runtime\\VerityFlow.Runtime.csproj",
+        "projectName": "VerityFlow.Runtime",
+        "projectPath": "F:\\software\\final evereything fixed\\report working before1\\report working\\script 3\\script\\examples\\Achievements\\projects\\verityflow\\runtime\\VerityFlow.Runtime.csproj",
+        "packagesPath": "C:\\Users\\ASHISH\\.nuget\\packages\\",
+        "outputPath": "F:\\software\\final evereything fixed\\report working before1\\report working\\script 3\\script\\examples\\Achievements\\projects\\verityflow\\runtime\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\ASHISH\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
