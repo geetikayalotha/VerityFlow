@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" width="720" height="360" role="img" aria-label="VerityFlow provenance graph animation">
+  <title>VerityFlow: Provenance Graph</title>
+  <desc>Animated diagram: sources flow into quotations, quotations link to a central claim, and a crimson support pulse traces the strongest evidence chain.</desc>
+  <defs>
+    <linearGradient id="parchment" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f4ead2"/>
+      <stop offset="1" stop-color="#e7d6ad"/>
+    </linearGradient>
+    <radialGradient id="claimGlow" cx="0.5" cy="0.5" r="0.6">
+      <stop offset="0" stop-color="#9c1f2e"/>
+      <stop offset="1" stop-color="#6d1420"/>
+    </radialGradient>
+    <filter id="ink" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1.4" result="b"/>
+      <feOffset in="b" dx="0" dy="1.5" result="o"/>
+      <feMerge><feMergeNode in="o"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <style>
+      .ink { fill:#2b2118; font-family: Georgia, 'Times New Roman', serif; }
+      .label { fill:#3a2c1e; font-family: Georgia, serif; font-size:12px; }
+      .edge { stroke:#5a4a34; stroke-width:1.6; fill:none; opacity:0.55; }

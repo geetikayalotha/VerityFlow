@@ -1,0 +1,62 @@
+[
+  {
+    "claim": {
+      "text": "Distributed teams that adopt asynchronous standups report fewer meeting hours without measurable delivery loss.",
+      "topic": "engineering-management",
+      "author": "internal-research",
+      "stance": "asserted"
+    },
+    "sources": [
+      {
+        "title": "State of Async Work 2024",
+        "kind": "dataset",
+        "author": "Remote Labs",
+        "year": 2024,
+        "publisher": "Remote Labs",
+        "url": "https://reports.remotelabs.example/async-2024",
+        "tier": "primary"
+      },
+      {
+        "title": "Meeting Load and Throughput in 40 Engineering Orgs",
+        "kind": "document",
+        "author": "K. Osei",
+        "year": 2023,
+        "publisher": "Journal of Software Practice",
+        "url": "https://jsp.example/articles/meeting-load",
+        "tier": "primary"
+      },
+      {
+        "title": "Field notes: switching to written standups",
+        "kind": "interview",
+        "author": "M. Alvarez",
+        "year": 2024,
+        "tier": "secondary"
+      }
+    ],
+    "quotations": [
+      {
+        "source_title": "State of Async Work 2024",
+        "text": "Teams running written standups logged 31% fewer synchronous meeting hours per sprint.",
+        "locator": "table 4"
+      },
+      {
+        "source_title": "Meeting Load and Throughput in 40 Engineering Orgs",
+        "text": "Cycle time was statistically unchanged after the transition to asynchronous coordination.",
+        "locator": "p. 12"
+      },
+      {
+        "source_title": "Field notes: switching to written standups",
+        "text": "Nobody could point to a single missed deadline caused by dropping the daily call.",
+        "locator": "00:14:20"
+      }
+    ],
+    "links": [
+      {
+        "quotation_text": "Teams running written standups logged 31% fewer synchronous meeting hours per sprint.",
+        "relation": "supports",
+        "confidence": 0.95
+      },
+      {
+        "quotation_text": "Cycle time was statistically unchanged after the transition to asynchronous coordination.",
+        "relation": "supports",
+        "confidence": 0.9
