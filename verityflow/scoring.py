@@ -56,3 +56,33 @@ class ScoreReport:
 
 def _domain_distribution(graph: ProvenanceGraph, claim_id: str) -> Dict[str, int]:
     counts: Dict[str, int] = {}
+    for src in graph.sources_for_claim(claim_id):
+        d = src.domain()
+        counts[d] = counts.get(d, 0) + 1
+    return counts
+
+
+def source_diversity(graph: ProvenanceGraph, claim_id: str) -> float:
+    """Normalised Shannon entropy of provenance domains for *claim_id*.
+
+    Returns 0.0 for a claim backed by a single domain (or none) and approaches
+    1.0 as evidence spreads across many equally-weighted domains.
+    """
+    dist = _domain_distribution(graph, claim_id)
+    total = sum(dist.values())
+    if total == 0 or len(dist) <= 1:
+        return 0.0
+    entropy = 0.0
+    for count in dist.values():
+        p = count / total
+        entropy -= p * math.log(p, 2)
+    return round(entropy / math.log(len(dist), 2), 4)
+
+
+def claim_support_strength(graph: ProvenanceGraph, claim_id: str) -> float:
+    """Confidence-weighted, bounded support index in [0, 1].
+
+    The raw score is a signed sum of ``relation_weight * confidence`` across
+    all links for the claim. It is mapped through a logistic squashing function
+    so that a strongly-refuted claim tends to 0 and a strongly-supported claim
+    tends to 1, with a neutral (unlinked) claim landing at 0.5.
