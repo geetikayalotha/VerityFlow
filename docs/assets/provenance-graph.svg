@@ -19,3 +19,45 @@
       .ink { fill:#2b2118; font-family: Georgia, 'Times New Roman', serif; }
       .label { fill:#3a2c1e; font-family: Georgia, serif; font-size:12px; }
       .edge { stroke:#5a4a34; stroke-width:1.6; fill:none; opacity:0.55; }
+      .node-src { fill:#efe2c2; stroke:#7a6444; stroke-width:1.4; }
+      .node-quo { fill:#f7efdb; stroke:#8a1f2c; stroke-width:1.4; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="720" height="360" fill="url(#parchment)"/>
+  <rect x="8" y="8" width="704" height="344" fill="none" stroke="#8a1f2c" stroke-width="2" stroke-dasharray="4 6" opacity="0.4"/>
+  <text x="24" y="36" class="ink" font-size="20" font-weight="bold">VerityFlow · Claim Provenance</text>
+
+  <!-- edges from sources -> quotations -> claim -->
+  <g class="edge">
+    <path d="M150,110 C260,110 300,150 360,180"/>
+    <path d="M150,180 C250,180 300,180 360,180"/>
+    <path d="M150,250 C260,250 300,210 360,180"/>
+    <path d="M150,110 C240,130 240,150 150,180" opacity="0"/>
+  </g>
+
+  <!-- animated support pulse along strongest chain -->
+  <circle r="5" fill="#9c1f2e">
+    <animateMotion dur="3.2s" repeatCount="indefinite" path="M150,110 C260,110 300,150 360,180"/>
+    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- source nodes -->
+  <g>
+    <rect class="node-src" x="70" y="94" width="80" height="32" rx="6">
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="4s" repeatCount="indefinite"/>
+    </rect>
+    <text x="110" y="114" class="label" text-anchor="middle">Source A</text>
+
+    <rect class="node-src" x="70" y="164" width="80" height="32" rx="6">
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="4s" begin="1s" repeatCount="indefinite"/>
+    </rect>
+    <text x="110" y="184" class="label" text-anchor="middle">Source B</text>
+
+    <rect class="node-src" x="70" y="234" width="80" height="32" rx="6">
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="4s" begin="2s" repeatCount="indefinite"/>
+    </rect>
+    <text x="110" y="254" class="label" text-anchor="middle">Source C</text>
+  </g>
+
+  <!-- claim node -->
