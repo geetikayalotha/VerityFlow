@@ -92,3 +92,97 @@ class Quotation:
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
+
+
+@dataclass
+class Claim:
+    """An assertion under scrutiny."""
+
+    id: str
+    text: str
+    topic: str = "general"
+    author: str = ""
+    stance: str = "asserted"  # asserted | disputed | hypothesis
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class EvidenceLink:
+    """Typed edge from a :class:`Quotation` to a :class:`Claim`."""
+
+    id: str
+    claim_id: str
+    quotation_id: str
+    relation: str = "supports"
+    confidence: float = 1.0  # 0..1 annotator confidence
+
+    def weight(self) -> float:
+        base = RELATION_WEIGHTS.get(self.relation, 0.0)
+        return base * max(0.0, min(1.0, self.confidence))
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class ResearchNote:
+    """Ingestion unit binding one claim to its supporting material."""
+
+    claim: Claim
+    sources: List[Source] = field(default_factory=list)
+    quotations: List[Quotation] = field(default_factory=list)
+    links: List[EvidenceLink] = field(default_factory=list)
+
+    @staticmethod
+    def from_dict(raw: Dict[str, Any]) -> "ResearchNote":
+        """Build a note from a loosely-typed dict (as loaded from JSON).
+
+        Missing ids are synthesised deterministically so the same input always
+        yields the same graph.
+        """
+        c = raw["claim"]
+        claim_text = c["text"]
+        claim = Claim(
+            id=c.get("id") or stable_id("claim", claim_text),
+            text=claim_text,
+            topic=c.get("topic", "general"),
+            author=c.get("author", ""),
+            stance=c.get("stance", "asserted"),
+        )
+
+        sources: List[Source] = []
+        for s in raw.get("sources", []):
+            title = s["title"]
+            sources.append(
+                Source(
+                    id=s.get("id") or stable_id("src", title, str(s.get("year", ""))),
+                    title=title,
+                    kind=s.get("kind", "document"),
+                    author=s.get("author", ""),
+                    year=s.get("year"),
+                    publisher=s.get("publisher", ""),
+                    url=s.get("url", ""),
+                    tier=s.get("tier", "secondary"),
+                )
+            )
+        src_by_key = {s.title: s.id for s in sources}
+
+        quotations: List[Quotation] = []
+        for q in raw.get("quotations", []):
+            sid = q.get("source_id")
+            if not sid and q.get("source_title"):
+                sid = src_by_key.get(q["source_title"], "")
+            qtext = q["text"]
+            quotations.append(
+                Quotation(
+                    id=q.get("id") or stable_id("quo", qtext),
+                    source_id=sid or "",
+                    text=qtext,
+                    locator=q.get("locator", ""),
+                )
+            )
+        quo_by_text = {q.text: q.id for q in quotations}
+
+        links: List[EvidenceLink] = []
