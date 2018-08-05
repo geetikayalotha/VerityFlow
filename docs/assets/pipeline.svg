@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" width="720" height="300" role="img" aria-label="VerityFlow pipeline animation">
+  <title>VerityFlow: Ingest to Dossier Pipeline</title>
+  <desc>Animated pipeline: research notes are compiled into a graph, scored, and rendered into a dossier that the C# runtime grades. A crimson token flows left to right.</desc>
+  <defs>
+    <linearGradient id="parch2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f5ecd6"/>
+      <stop offset="1" stop-color="#e4d1a6"/>
+    </linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#8a1f2c"/>
+    </marker>
+    <style>
+      .stage { fill:#faf3e0; stroke:#7a6444; stroke-width:1.6; }
+      .stitle { fill:#2b2118; font-family: Georgia, serif; font-size:13px; font-weight:bold; }
+      .ssub { fill:#5a4a34; font-family: Georgia, serif; font-size:10px; }
+      .flow { stroke:#8a1f2c; stroke-width:2; fill:none; }
+      .head { fill:#2b2118; font-family: Georgia, serif; }
+    </style>
+  </defs>
+
+  <rect width="720" height="300" fill="url(#parch2)"/>
+  <text x="24" y="40" class="head" font-size="20" font-weight="bold">Ingest → Graph → Score → Dossier</text>
+  <line x1="24" y1="52" x2="360" y2="52" stroke="#8a1f2c" stroke-width="1.5" opacity="0.6"/>
+
+  <!-- stages -->
+  <g>
+    <rect class="stage" x="30"  y="110" width="130" height="70" rx="8"/>
+    <text x="95" y="140" class="stitle" text-anchor="middle">notes</text>
+    <text x="95" y="160" class="ssub" text-anchor="middle">research-notes.json</text>
+
+    <rect class="stage" x="200" y="110" width="130" height="70" rx="8"/>
+    <text x="265" y="140" class="stitle" text-anchor="middle">graph</text>
+    <text x="265" y="160" class="ssub" text-anchor="middle">claims · quotes · links</text>
+
