@@ -15,20 +15,3 @@
       .ssub { fill:#5a4a34; font-family: Georgia, serif; font-size:10px; }
       .flow { stroke:#8a1f2c; stroke-width:2; fill:none; }
       .head { fill:#2b2118; font-family: Georgia, serif; }
-    </style>
-  </defs>
-
-  <rect width="720" height="300" fill="url(#parch2)"/>
-  <text x="24" y="40" class="head" font-size="20" font-weight="bold">Ingest → Graph → Score → Dossier</text>
-  <line x1="24" y1="52" x2="360" y2="52" stroke="#8a1f2c" stroke-width="1.5" opacity="0.6"/>
-
-  <!-- stages -->
-  <g>
-    <rect class="stage" x="30"  y="110" width="130" height="70" rx="8"/>
-    <text x="95" y="140" class="stitle" text-anchor="middle">notes</text>
-    <text x="95" y="160" class="ssub" text-anchor="middle">research-notes.json</text>
-
-    <rect class="stage" x="200" y="110" width="130" height="70" rx="8"/>
-    <text x="265" y="140" class="stitle" text-anchor="middle">graph</text>
-    <text x="265" y="160" class="ssub" text-anchor="middle">claims · quotes · links</text>
-
