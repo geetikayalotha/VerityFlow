@@ -1,0 +1,9 @@
+name: verify
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
