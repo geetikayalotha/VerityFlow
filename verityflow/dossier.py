@@ -63,3 +63,68 @@ def build_dossier(graph: ProvenanceGraph, title: str = "Evidence Dossier") -> Do
         for link in graph.links_for_claim(cid):
             q = graph.quotations.get(link.quotation_id)
             if not q:
+                continue
+            src = graph.sources.get(q.source_id)
+            quotes.append(
+                {
+                    "relation": link.relation,
+                    "confidence": round(link.confidence, 2),
+                    "text": q.text,
+                    "locator": q.locator,
+                    "source_title": src.title if src else "(unknown source)",
+                    "source_tier": src.tier if src else "",
+                    "source_domain": src.domain() if src else "",
+                }
+            )
+        entries.append(
+            DossierEntry(
+                claim_id=cid,
+                claim_text=claim.text,
+                topic=claim.topic,
+                verdict=_verdict(cs),
+                support_index=cs.support_index,
+                diversity=cs.diversity,
+                quotations=quotes,
+            )
+        )
+
+    entries.sort(key=lambda e: (-e.support_index, e.claim_id))
+
+    return Dossier(
+        title=title,
+        coverage=report.coverage,
+        mean_support=round(report.mean_support, 4),
+        mean_diversity=round(report.mean_diversity, 4),
+        stats=compute_stats(graph).to_dict(),
+        entries=entries,
+    )
+
+
+def render_json(dossier: Dossier) -> Dict[str, Any]:
+    """Return a JSON-serialisable dict for *dossier*."""
+    return {
+        "title": dossier.title,
+        "summary": {
+            "coverage": dossier.coverage,
+            "mean_support": dossier.mean_support,
+            "mean_diversity": dossier.mean_diversity,
+        },
+        "graph_stats": dossier.stats,
+        "entries": [
+            {
+                "claim_id": e.claim_id,
+                "claim_text": e.claim_text,
+                "topic": e.topic,
+                "verdict": e.verdict,
+                "support_index": e.support_index,
+                "diversity": e.diversity,
+                "quotations": e.quotations,
+            }
+            for e in dossier.entries
+        ],
+    }
+
+
+_VERDICT_BADGE = {
+    "well-supported": "🟢",
+    "supported": "🟢",
