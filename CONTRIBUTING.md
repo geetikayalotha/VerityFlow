@@ -4,6 +4,3 @@ Contributions are most effective when they begin with a small fixture that demon
 
 ## Development loop
 1. Run the project's compile target from the Makefile.
-2. Exercise a command-line example against a fixture.
-3. Keep output stable, readable and structured for downstream tooling.
-4. Describe the motivation, data shape and report impact in the pull request.

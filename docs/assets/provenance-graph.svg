@@ -40,24 +40,3 @@
   <circle r="5" fill="#9c1f2e">
     <animateMotion dur="3.2s" repeatCount="indefinite" path="M150,110 C260,110 300,150 360,180"/>
     <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" repeatCount="indefinite"/>
-  </circle>
-
-  <!-- source nodes -->
-  <g>
-    <rect class="node-src" x="70" y="94" width="80" height="32" rx="6">
-      <animate attributeName="opacity" values="0.6;1;0.6" dur="4s" repeatCount="indefinite"/>
-    </rect>
-    <text x="110" y="114" class="label" text-anchor="middle">Source A</text>
-
-    <rect class="node-src" x="70" y="164" width="80" height="32" rx="6">
-      <animate attributeName="opacity" values="0.6;1;0.6" dur="4s" begin="1s" repeatCount="indefinite"/>
-    </rect>
-    <text x="110" y="184" class="label" text-anchor="middle">Source B</text>
-
-    <rect class="node-src" x="70" y="234" width="80" height="32" rx="6">
-      <animate attributeName="opacity" values="0.6;1;0.6" dur="4s" begin="2s" repeatCount="indefinite"/>
-    </rect>
-    <text x="110" y="254" class="label" text-anchor="middle">Source C</text>
-  </g>
-
-  <!-- claim node -->
