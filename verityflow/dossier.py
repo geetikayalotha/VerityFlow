@@ -37,3 +37,42 @@ class DossierEntry:
     topic: str
     verdict: str
     support_index: float
+    diversity: float
+    quotations: List[Dict[str, Any]] = field(default_factory=list)
+
+
+@dataclass
+class Dossier:
+    title: str
+    coverage: float
+    mean_support: float
+    mean_diversity: float
+    stats: Dict[str, Any]
+    entries: List[DossierEntry] = field(default_factory=list)
+
+
+def build_dossier(graph: ProvenanceGraph, title: str = "Evidence Dossier") -> Dossier:
+    """Assemble a :class:`Dossier` from a compiled *graph*."""
+    report: ScoreReport = score_graph(graph)
+    score_by_claim = {c.claim_id: c for c in report.claims}
+
+    entries: List[DossierEntry] = []
+    for cid, claim in graph.claims.items():
+        cs = score_by_claim[cid]
+        quotes: List[Dict[str, Any]] = []
+        for link in graph.links_for_claim(cid):
+            q = graph.quotations.get(link.quotation_id)
+            if not q:
+                continue
+            src = graph.sources.get(q.source_id)
+            quotes.append(
+                {
+                    "relation": link.relation,
+                    "confidence": round(link.confidence, 2),
+                    "text": q.text,
+                    "locator": q.locator,
+                    "source_title": src.title if src else "(unknown source)",
+                    "source_tier": src.tier if src else "",
+                    "source_domain": src.domain() if src else "",
+                }
+            )
