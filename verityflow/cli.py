@@ -53,3 +53,58 @@ def _load_graph(path: str):
     return build_graph(notes)
 
 
+def cmd_graph(args: argparse.Namespace) -> int:
+    graph = _load_graph(args.input)
+    if args.emit == "stats":
+        payload = compute_stats(graph).to_dict()
+    elif args.emit == "adjacency":
+        payload = to_adjacency(graph)
+    elif args.emit == "edges":
+        payload = to_edge_list(graph)
+    else:  # full
+        payload = graph.to_dict()
+    _write_output(args.output, json.dumps(payload, indent=2, ensure_ascii=False))
+    return 0
+
+
+def cmd_score(args: argparse.Namespace) -> int:
+    graph = _load_graph(args.input)
+    report = score_graph(graph)
+    _write_output(
+        args.output, json.dumps(report.to_dict(), indent=2, ensure_ascii=False)
+    )
+    return 0
+
+
+def cmd_dossier(args: argparse.Namespace) -> int:
+    graph = _load_graph(args.input)
+    dossier = build_dossier(graph, title=args.title)
+    if args.format == "json":
+        text = json.dumps(render_json(dossier), indent=2, ensure_ascii=False)
+    else:
+        text = render_markdown(dossier)
+    _write_output(args.output, text)
+    return 0
+
+
+def cmd_validate(args: argparse.Namespace) -> int:
+    graph = _load_graph(args.input)
+    dangling = graph.dangling_links()
+    orphans = graph.orphan_quotations()
+    report = {
+        "ok": not dangling and not orphans,
+        "claims": len(graph.claims),
+        "dangling_links": [l.id for l in dangling],
+        "orphan_quotations": [q.id for q in orphans],
+    }
+    _write_output(args.output, json.dumps(report, indent=2, ensure_ascii=False))
+    return 0 if report["ok"] else 2
+
+
+def build_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(
+        prog="verityflow",
+        description="Claim Provenance Graph Builder — compile research notes "
+        "into an evidence graph and emit dossiers.",
+    )
+    p.add_argument("--version", action="store_true", help="print version and exit")
