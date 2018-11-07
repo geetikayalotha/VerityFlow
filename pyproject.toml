@@ -1,0 +1,5 @@
+[project]
+name = "verityflow"
+version = "0.1.0"
+description = "Claim Provenance Graph Builder"
+requires-python = ">=3.11"
