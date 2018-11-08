@@ -52,3 +52,30 @@ internal static class Summariser
             health,
             dossier.Coverage,
             dossier.MeanSupport,
+            dossier.MeanDiversity,
+            dossier.Claims == 0 ? dossier.Entries.Count : dossier.Claims,
+            tally,
+            weakest);
+    }
+
+    private static string Grade(double health) => health switch
+    {
+        >= 0.85 => "A",
+        >= 0.70 => "B",
+        >= 0.55 => "C",
+        >= 0.40 => "D",
+        _ => "F",
+    };
+
+    public static string RenderText(Summary s)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine($"VerityFlow dossier summary — {s.Title}");
+        sb.AppendLine(new string('=', 48));
+        sb.AppendLine($"Provenance health : {s.HealthScore:P0}  (grade {s.Grade})");
+        sb.AppendLine($"Citation coverage : {s.Coverage:P0}");
+        sb.AppendLine($"Mean support      : {s.MeanSupport:F2}");
+        sb.AppendLine($"Mean diversity    : {s.MeanDiversity:F2}");
+        sb.AppendLine($"Claims analysed   : {s.TotalClaims}");
+        sb.AppendLine();
+        sb.AppendLine("Verdict tally:");
