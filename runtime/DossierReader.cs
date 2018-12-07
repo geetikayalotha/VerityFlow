@@ -44,3 +44,26 @@ internal static class DossierReader
         if (root.TryGetProperty("graph_stats", out var stats))
         {
             claims = GetInt(stats, "claims");
+            sources = GetInt(stats, "sources");
+            quotations = GetInt(stats, "quotations");
+            links = GetInt(stats, "links");
+        }
+
+        var entries = new List<ClaimEntry>();
+        if (root.TryGetProperty("entries", out var arr) && arr.ValueKind == JsonValueKind.Array)
+        {
+            foreach (JsonElement e in arr.EnumerateArray())
+            {
+                int quoteCount = 0;
+                if (e.TryGetProperty("quotations", out var quotes) &&
+                    quotes.ValueKind == JsonValueKind.Array)
+                {
+                    quoteCount = quotes.GetArrayLength();
+                }
+
+                entries.Add(new ClaimEntry(
+                    GetString(e, "claim_id", ""),
+                    GetString(e, "claim_text", ""),
+                    GetString(e, "topic", "general"),
+                    GetString(e, "verdict", "unsupported"),
+                    GetDouble(e, "support_index"),
