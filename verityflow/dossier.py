@@ -115,3 +115,42 @@ def render_json(dossier: Dossier) -> Dict[str, Any]:
                 "claim_id": e.claim_id,
                 "claim_text": e.claim_text,
                 "topic": e.topic,
+                "verdict": e.verdict,
+                "support_index": e.support_index,
+                "diversity": e.diversity,
+                "quotations": e.quotations,
+            }
+            for e in dossier.entries
+        ],
+    }
+
+
+_VERDICT_BADGE = {
+    "well-supported": "🟢",
+    "supported": "🟢",
+    "weakly-supported": "🟡",
+    "contested": "🟠",
+    "unsupported": "⚪",
+    "refuted": "🔴",
+}
+
+
+def render_markdown(dossier: Dossier) -> str:
+    """Render *dossier* to a self-contained Markdown report."""
+    lines: List[str] = []
+    lines.append(f"# {dossier.title}")
+    lines.append("")
+    lines.append(
+        f"> Citation coverage **{dossier.coverage:.0%}** · "
+        f"mean support **{dossier.mean_support:.2f}** · "
+        f"mean diversity **{dossier.mean_diversity:.2f}**"
+    )
+    lines.append("")
+
+    st = dossier.stats
+    lines.append("## Graph at a glance")
+    lines.append("")
+    lines.append("| Metric | Value |")
+    lines.append("| --- | --- |")
+    lines.append(f"| Claims | {st['claims']} |")
+    lines.append(f"| Sources | {st['sources']} |")
