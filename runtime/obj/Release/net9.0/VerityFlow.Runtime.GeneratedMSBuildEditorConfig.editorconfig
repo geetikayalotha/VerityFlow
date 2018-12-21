@@ -1,3 +1,12 @@
 is_global = true
 build_property.TargetFramework = net9.0
 build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = 
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = true
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = Linux,macOS,Windows
+build_property.RootNamespace = VerityFlow.Runtime
+build_property.ProjectDir = F:\software\final evereything fixed\report working before1\report working\script 3\script\examples\Achievements\projects\verityflow\runtime\
+build_property.EnableComHosting = 
