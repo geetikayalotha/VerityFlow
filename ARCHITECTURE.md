@@ -8,3 +8,8 @@ VerityFlow is a Claim Provenance Graph Builder that turns claims, quotations, so
 fixtures or operator input -> parser -> normalized domain records -> analysis engine -> report model -> terminal / JSON / Markdown
 ` 
 
+## Components
+
+- **Python package** owns command handling, portable parsers, report assembly and example workflows.
+- **Native companion** mirrors the central calculation for compact command-line use and implementation parity.
+- **Fixtures and docs** define stable, readable examples that make each analysis result reproducible.
