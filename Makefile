@@ -3,8 +3,3 @@
 compile: python native
 
 python:
-	python -m compileall -q verityflow
-
-native:
-	dotnet build runtime/VerityFlow.Runtime.csproj -c Release --nologo
-
