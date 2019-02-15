@@ -5,11 +5,3 @@
   },
   "compilationOptions": {},
   "targets": {
-    ".NETCoreApp,Version=v9.0": {
-      "VerityFlow.Runtime/1.0.0": {
-        "runtime": {
-          "VerityFlow.Runtime.dll": {}
-        }
-      }
-    }
-  },
