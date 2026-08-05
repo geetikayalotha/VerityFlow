@@ -32,3 +32,38 @@
     <text x="265" y="140" class="stitle" text-anchor="middle">graph</text>
     <text x="265" y="160" class="ssub" text-anchor="middle">claims · quotes · links</text>
 
+    <rect class="stage" x="370" y="110" width="130" height="70" rx="8"/>
+    <text x="435" y="140" class="stitle" text-anchor="middle">score</text>
+    <text x="435" y="160" class="ssub" text-anchor="middle">coverage · support</text>
+
+    <rect class="stage" x="540" y="110" width="150" height="70" rx="8"/>
+    <text x="615" y="140" class="stitle" text-anchor="middle">dossier</text>
+    <text x="615" y="160" class="ssub" text-anchor="middle">md / json → grade</text>
+  </g>
+
+  <!-- connectors -->
+  <path class="flow" d="M160,145 L198,145" marker-end="url(#arrow)"/>
+  <path class="flow" d="M330,145 L368,145" marker-end="url(#arrow)"/>
+  <path class="flow" d="M500,145 L538,145" marker-end="url(#arrow)"/>
+
+  <!-- flowing token -->
+  <circle r="6" fill="#9c1f2e">
+    <animateMotion dur="4s" repeatCount="indefinite" keyPoints="0;0.25;0.25;0.5;0.5;0.75;0.75;1" keyTimes="0;0.22;0.28;0.47;0.53;0.72;0.78;1" calcMode="linear"
+      path="M95,145 L265,145 L435,145 L615,145"/>
+    <animate attributeName="fill" values="#9c1f2e;#c0392b;#9c1f2e" dur="4s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- animated grade meter -->
+  <g transform="translate(30,210)">
+    <text x="0" y="14" class="ssub">provenance health</text>
+    <rect x="0" y="22" width="660" height="14" rx="7" fill="#e7d6ad" stroke="#7a6444"/>
+    <rect x="0" y="22" width="0" height="14" rx="7" fill="#9c1f2e">
+      <animate attributeName="width" values="0;383" dur="2.4s" fill="freeze"/>
+      <animate attributeName="fill" values="#c0392b;#9c1f2e" dur="2.4s" fill="freeze"/>
+    </rect>
+    <text x="666" y="34" class="ssub" text-anchor="end">
+      <animate attributeName="opacity" values="0;1" dur="0.6s" begin="2.2s" fill="freeze"/>
+    </text>
+  </g>
+  <text x="640" y="248" class="ssub" text-anchor="end">grade B</text>
+</svg>
