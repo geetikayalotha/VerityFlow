@@ -60,3 +60,127 @@
         "quotation_text": "Cycle time was statistically unchanged after the transition to asynchronous coordination.",
         "relation": "supports",
         "confidence": 0.9
+      },
+      {
+        "quotation_text": "Nobody could point to a single missed deadline caused by dropping the daily call.",
+        "relation": "qualifies",
+        "confidence": 0.6
+      }
+    ]
+  },
+  {
+    "claim": {
+      "text": "Feature flags reduce rollback frequency in continuous-deployment pipelines.",
+      "topic": "release-engineering",
+      "stance": "asserted"
+    },
+    "sources": [
+      {
+        "title": "Progressive Delivery Benchmarks",
+        "kind": "dataset",
+        "author": "DeployMetrics",
+        "year": 2023,
+        "publisher": "DeployMetrics",
+        "url": "https://deploymetrics.example/benchmarks",
+        "tier": "primary"
+      },
+      {
+        "title": "A Critique of Flag-Driven Development",
+        "kind": "document",
+        "author": "R. Iqbal",
+        "year": 2024,
+        "publisher": "DeployMetrics",
+        "url": "https://deploymetrics.example/critique-flags",
+        "tier": "secondary"
+      }
+    ],
+    "quotations": [
+      {
+        "source_title": "Progressive Delivery Benchmarks",
+        "text": "Pipelines with feature flags rolled back 42% less often over a six-month window.",
+        "locator": "fig 2"
+      },
+      {
+        "source_title": "A Critique of Flag-Driven Development",
+        "text": "Unretired flags accumulated into a maintenance burden that reintroduced incidents.",
+        "locator": "sec 3"
+      }
+    ],
+    "links": [
+      {
+        "quotation_text": "Pipelines with feature flags rolled back 42% less often over a six-month window.",
+        "relation": "supports",
+        "confidence": 0.85
+      },
+      {
+        "quotation_text": "Unretired flags accumulated into a maintenance burden that reintroduced incidents.",
+        "relation": "refutes",
+        "confidence": 0.5
+      }
+    ]
+  },
+  {
+    "claim": {
+      "text": "Mandatory pair programming improves onboarding speed for junior engineers.",
+      "topic": "engineering-management",
+      "stance": "disputed"
+    },
+    "sources": [
+      {
+        "title": "Onboarding Cohort Study",
+        "kind": "document",
+        "author": "T. Nakamura",
+        "year": 2022,
+        "publisher": "Journal of Software Practice",
+        "url": "https://jsp.example/articles/onboarding-cohort",
+        "tier": "primary"
+      }
+    ],
+    "quotations": [
+      {
+        "source_title": "Onboarding Cohort Study",
+        "text": "Paired juniors reached their first independent merge two weeks sooner on average.",
+        "locator": "p. 8"
+      }
+    ],
+    "links": [
+      {
+        "quotation_text": "Paired juniors reached their first independent merge two weeks sooner on average.",
+        "relation": "supports",
+        "confidence": 0.7
+      }
+    ]
+  },
+  {
+    "claim": {
+      "text": "Serverless functions eliminate the need for capacity planning entirely.",
+      "topic": "cloud-architecture",
+      "stance": "hypothesis"
+    },
+    "sources": [
+      {
+        "title": "Cold Starts and Concurrency Limits",
+        "kind": "document",
+        "author": "L. Fenwick",
+        "year": 2023,
+        "publisher": "Cloud Systems Review",
+        "url": "https://csr.example/cold-starts",
+        "tier": "primary"
+      }
+    ],
+    "quotations": [
+      {
+        "source_title": "Cold Starts and Concurrency Limits",
+        "text": "Accounts hitting concurrency ceilings still require deliberate quota planning.",
+        "locator": "p. 5"
+      }
+    ],
+    "links": [
+      {
+        "quotation_text": "Accounts hitting concurrency ceilings still require deliberate quota planning.",
+        "relation": "refutes",
+        "confidence": 0.9
+      }
+    ]
+  }
+]
