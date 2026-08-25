@@ -43,3 +43,93 @@ internal static class Summariser
         var weakest = dossier.Entries
             .OrderBy(e => e.SupportIndex)
             .ThenBy(e => e.Diversity)
+            .Take(WeakestLimit)
+            .ToList();
+
+        return new Summary(
+            dossier.Title,
+            Grade(health),
+            health,
+            dossier.Coverage,
+            dossier.MeanSupport,
+            dossier.MeanDiversity,
+            dossier.Claims == 0 ? dossier.Entries.Count : dossier.Claims,
+            tally,
+            weakest);
+    }
+
+    private static string Grade(double health) => health switch
+    {
+        >= 0.85 => "A",
+        >= 0.70 => "B",
+        >= 0.55 => "C",
+        >= 0.40 => "D",
+        _ => "F",
+    };
+
+    public static string RenderText(Summary s)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine($"VerityFlow dossier summary — {s.Title}");
+        sb.AppendLine(new string('=', 48));
+        sb.AppendLine($"Provenance health : {s.HealthScore:P0}  (grade {s.Grade})");
+        sb.AppendLine($"Citation coverage : {s.Coverage:P0}");
+        sb.AppendLine($"Mean support      : {s.MeanSupport:F2}");
+        sb.AppendLine($"Mean diversity    : {s.MeanDiversity:F2}");
+        sb.AppendLine($"Claims analysed   : {s.TotalClaims}");
+        sb.AppendLine();
+        sb.AppendLine("Verdict tally:");
+        foreach (var kv in s.VerdictTally)
+        {
+            sb.AppendLine($"  {kv.Key,-16} {kv.Value}");
+        }
+
+        if (s.WeakestClaims.Count > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine("Weakest claims (need more citations):");
+            foreach (ClaimEntry e in s.WeakestClaims)
+            {
+                string text = e.ClaimText.Length > 64
+                    ? e.ClaimText[..61] + "..."
+                    : e.ClaimText;
+                sb.AppendLine(
+                    $"  [{e.SupportIndex:F2}] {text}  ({e.QuotationCount} quotes)");
+            }
+        }
+
+        return sb.ToString().TrimEnd();
+    }
+
+    public static string RenderJson(Summary s)
+    {
+        var payload = new Dictionary<string, object?>
+        {
+            ["title"] = s.Title,
+            ["grade"] = s.Grade,
+            ["health_score"] = s.HealthScore,
+            ["coverage"] = s.Coverage,
+            ["mean_support"] = s.MeanSupport,
+            ["mean_diversity"] = s.MeanDiversity,
+            ["total_claims"] = s.TotalClaims,
+            ["verdict_tally"] = s.VerdictTally,
+            ["weakest_claims"] = s.WeakestClaims.Select(e => new Dictionary<string, object?>
+            {
+                ["claim_id"] = e.ClaimId,
+                ["claim_text"] = e.ClaimText,
+                ["support_index"] = e.SupportIndex,
+                ["diversity"] = e.Diversity,
+                ["quotation_count"] = e.QuotationCount,
+            }).ToList(),
+        };
+
+        return JsonSerializer.Serialize(payload, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+        });
+    }
+
+    // Retained for callers that need culture-invariant numeric formatting.
+    internal static string Format(double value) =>
+        value.ToString("F4", CultureInfo.InvariantCulture);
+}
