@@ -5,3 +5,10 @@ F:\software\final evereything fixed\report working before1\report working\script
 F:\software\final evereything fixed\report working before1\report working\script 3\script\examples\Achievements\projects\verityflow\runtime\bin\Release\net9.0\VerityFlow.Runtime.pdb
 F:\software\final evereything fixed\report working before1\report working\script 3\script\examples\Achievements\projects\verityflow\runtime\obj\Release\net9.0\VerityFlow.Runtime.GeneratedMSBuildEditorConfig.editorconfig
 F:\software\final evereything fixed\report working before1\report working\script 3\script\examples\Achievements\projects\verityflow\runtime\obj\Release\net9.0\VerityFlow.Runtime.AssemblyInfoInputs.cache
+F:\software\final evereything fixed\report working before1\report working\script 3\script\examples\Achievements\projects\verityflow\runtime\obj\Release\net9.0\VerityFlow.Runtime.AssemblyInfo.cs
+F:\software\final evereything fixed\report working before1\report working\script 3\script\examples\Achievements\projects\verityflow\runtime\obj\Release\net9.0\VerityFlow.Runtime.csproj.CoreCompileInputs.cache
+F:\software\final evereything fixed\report working before1\report working\script 3\script\examples\Achievements\projects\verityflow\runtime\obj\Release\net9.0\VerityFlow.Runtime.dll
+F:\software\final evereything fixed\report working before1\report working\script 3\script\examples\Achievements\projects\verityflow\runtime\obj\Release\net9.0\refint\VerityFlow.Runtime.dll
+F:\software\final evereything fixed\report working before1\report working\script 3\script\examples\Achievements\projects\verityflow\runtime\obj\Release\net9.0\VerityFlow.Runtime.pdb
+F:\software\final evereything fixed\report working before1\report working\script 3\script\examples\Achievements\projects\verityflow\runtime\obj\Release\net9.0\VerityFlow.Runtime.genruntimeconfig.cache
+F:\software\final evereything fixed\report working before1\report working\script 3\script\examples\Achievements\projects\verityflow\runtime\obj\Release\net9.0\ref\VerityFlow.Runtime.dll
