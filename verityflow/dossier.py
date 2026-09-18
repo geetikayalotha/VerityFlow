@@ -37,3 +37,160 @@ class DossierEntry:
     topic: str
     verdict: str
     support_index: float
+    diversity: float
+    quotations: List[Dict[str, Any]] = field(default_factory=list)
+
+
+@dataclass
+class Dossier:
+    title: str
+    coverage: float
+    mean_support: float
+    mean_diversity: float
+    stats: Dict[str, Any]
+    entries: List[DossierEntry] = field(default_factory=list)
+
+
+def build_dossier(graph: ProvenanceGraph, title: str = "Evidence Dossier") -> Dossier:
+    """Assemble a :class:`Dossier` from a compiled *graph*."""
+    report: ScoreReport = score_graph(graph)
+    score_by_claim = {c.claim_id: c for c in report.claims}
+
+    entries: List[DossierEntry] = []
+    for cid, claim in graph.claims.items():
+        cs = score_by_claim[cid]
+        quotes: List[Dict[str, Any]] = []
+        for link in graph.links_for_claim(cid):
+            q = graph.quotations.get(link.quotation_id)
+            if not q:
+                continue
+            src = graph.sources.get(q.source_id)
+            quotes.append(
+                {
+                    "relation": link.relation,
+                    "confidence": round(link.confidence, 2),
+                    "text": q.text,
+                    "locator": q.locator,
+                    "source_title": src.title if src else "(unknown source)",
+                    "source_tier": src.tier if src else "",
+                    "source_domain": src.domain() if src else "",
+                }
+            )
+        entries.append(
+            DossierEntry(
+                claim_id=cid,
+                claim_text=claim.text,
+                topic=claim.topic,
+                verdict=_verdict(cs),
+                support_index=cs.support_index,
+                diversity=cs.diversity,
+                quotations=quotes,
+            )
+        )
+
+    entries.sort(key=lambda e: (-e.support_index, e.claim_id))
+
+    return Dossier(
+        title=title,
+        coverage=report.coverage,
+        mean_support=round(report.mean_support, 4),
+        mean_diversity=round(report.mean_diversity, 4),
+        stats=compute_stats(graph).to_dict(),
+        entries=entries,
+    )
+
+
+def render_json(dossier: Dossier) -> Dict[str, Any]:
+    """Return a JSON-serialisable dict for *dossier*."""
+    return {
+        "title": dossier.title,
+        "summary": {
+            "coverage": dossier.coverage,
+            "mean_support": dossier.mean_support,
+            "mean_diversity": dossier.mean_diversity,
+        },
+        "graph_stats": dossier.stats,
+        "entries": [
+            {
+                "claim_id": e.claim_id,
+                "claim_text": e.claim_text,
+                "topic": e.topic,
+                "verdict": e.verdict,
+                "support_index": e.support_index,
+                "diversity": e.diversity,
+                "quotations": e.quotations,
+            }
+            for e in dossier.entries
+        ],
+    }
+
+
+_VERDICT_BADGE = {
+    "well-supported": "🟢",
+    "supported": "🟢",
+    "weakly-supported": "🟡",
+    "contested": "🟠",
+    "unsupported": "⚪",
+    "refuted": "🔴",
+}
+
+
+def render_markdown(dossier: Dossier) -> str:
+    """Render *dossier* to a self-contained Markdown report."""
+    lines: List[str] = []
+    lines.append(f"# {dossier.title}")
+    lines.append("")
+    lines.append(
+        f"> Citation coverage **{dossier.coverage:.0%}** · "
+        f"mean support **{dossier.mean_support:.2f}** · "
+        f"mean diversity **{dossier.mean_diversity:.2f}**"
+    )
+    lines.append("")
+
+    st = dossier.stats
+    lines.append("## Graph at a glance")
+    lines.append("")
+    lines.append("| Metric | Value |")
+    lines.append("| --- | --- |")
+    lines.append(f"| Claims | {st['claims']} |")
+    lines.append(f"| Sources | {st['sources']} |")
+    lines.append(f"| Quotations | {st['quotations']} |")
+    lines.append(f"| Evidence links | {st['links']} |")
+    lines.append(f"| Dangling links | {st['dangling_links']} |")
+    lines.append(f"| Orphan quotations | {st['orphan_quotations']} |")
+    lines.append("")
+
+    lines.append("## Claims")
+    lines.append("")
+    for e in dossier.entries:
+        badge = _VERDICT_BADGE.get(e.verdict, "•")
+        lines.append(f"### {badge} {e.claim_text}")
+        lines.append("")
+        lines.append(
+            f"- **Verdict:** {e.verdict}  "
+            f"\n- **Support index:** {e.support_index:.2f}  "
+            f"\n- **Source diversity:** {e.diversity:.2f}  "
+            f"\n- **Topic:** {e.topic}  "
+            f"\n- **Claim id:** `{e.claim_id}`"
+        )
+        lines.append("")
+        if not e.quotations:
+            lines.append("_No evidence links attached._")
+            lines.append("")
+            continue
+        lines.append("| Relation | Conf. | Source | Tier | Quotation |")
+        lines.append("| --- | --- | --- | --- | --- |")
+        for q in e.quotations:
+            text = q["text"].replace("|", "\\|")
+            loc = f" ({q['locator']})" if q["locator"] else ""
+            lines.append(
+                f"| {q['relation']} | {q['confidence']:.2f} | "
+                f"{q['source_title']}{loc} | {q['source_tier']} | {text} |"
+            )
+        lines.append("")
+
+    lines.append("---")
+    lines.append("")
+    lines.append("_Generated by VerityFlow — Claim Provenance Graph Builder._")
+    lines.append("")
+    return "\n".join(lines)
