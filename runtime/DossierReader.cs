@@ -44,3 +44,50 @@ internal static class DossierReader
         if (root.TryGetProperty("graph_stats", out var stats))
         {
             claims = GetInt(stats, "claims");
+            sources = GetInt(stats, "sources");
+            quotations = GetInt(stats, "quotations");
+            links = GetInt(stats, "links");
+        }
+
+        var entries = new List<ClaimEntry>();
+        if (root.TryGetProperty("entries", out var arr) && arr.ValueKind == JsonValueKind.Array)
+        {
+            foreach (JsonElement e in arr.EnumerateArray())
+            {
+                int quoteCount = 0;
+                if (e.TryGetProperty("quotations", out var quotes) &&
+                    quotes.ValueKind == JsonValueKind.Array)
+                {
+                    quoteCount = quotes.GetArrayLength();
+                }
+
+                entries.Add(new ClaimEntry(
+                    GetString(e, "claim_id", ""),
+                    GetString(e, "claim_text", ""),
+                    GetString(e, "topic", "general"),
+                    GetString(e, "verdict", "unsupported"),
+                    GetDouble(e, "support_index"),
+                    GetDouble(e, "diversity"),
+                    quoteCount));
+            }
+        }
+
+        return new Dossier(title, coverage, meanSupport, meanDiversity,
+            claims, sources, quotations, links, entries);
+    }
+
+    private static string GetString(JsonElement el, string name, string fallback) =>
+        el.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String
+            ? v.GetString() ?? fallback
+            : fallback;
+
+    private static double GetDouble(JsonElement el, string name) =>
+        el.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.Number
+            ? v.GetDouble()
+            : 0.0;
+
+    private static int GetInt(JsonElement el, string name) =>
+        el.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.Number
+            ? v.GetInt32()
+            : 0;
+}
