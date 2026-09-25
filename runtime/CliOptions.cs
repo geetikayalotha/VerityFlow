@@ -29,3 +29,34 @@ internal sealed class CliOptions
                 case "--input":
                     opts.InputPath = NextValue(args, ref i);
                     break;
+                case "-o":
+                case "--output":
+                    opts.OutputPath = NextValue(args, ref i);
+                    break;
+                case "-f":
+                case "--format":
+                    string value = NextValue(args, ref i) ?? "text";
+                    opts.Format = value.Equals("json", StringComparison.OrdinalIgnoreCase)
+                        ? OutputFormat.Json
+                        : OutputFormat.Text;
+                    break;
+                default:
+                    // Unknown positional token becomes the input path if unset.
+                    opts.InputPath ??= args[i];
+                    break;
+            }
+        }
+
+        return opts;
+    }
+
+    private static string? NextValue(string[] args, ref int index)
+    {
+        if (index + 1 < args.Length)
+        {
+            return args[++index];
+        }
+
+        return null;
+    }
+}
