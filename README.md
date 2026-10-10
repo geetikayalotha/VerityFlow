@@ -94,3 +94,292 @@ Module responsibilities:
 | `verityflow/graph.py` | Fold notes into a `ProvenanceGraph`; compute structural `GraphStats`; export adjacency/edge lists. |
 | `verityflow/scoring.py` | Citation coverage, source diversity (Shannon entropy), support strength (logistic squash). |
 | `verityflow/dossier.py` | Assemble per-claim verdicts and render Markdown/JSON dossiers. |
+| `verityflow/cli.py` | Argument parsing, stdin/stdout plumbing, four subcommands. |
+| `runtime/DossierReader.cs` | Parse the JSON dossier with `System.Text.Json`. |
+| `runtime/Summariser.cs` | Blend coverage/support/diversity into a health score and letter grade. |
+| `runtime/Program.cs` | CLI entry point; text or JSON output; grade-driven exit code. |
+
+The two runtimes are decoupled by a **JSON contract** — the dossier. Python never imports anything from .NET and vice versa. You can run the Python half alone, feed the dossier to your own tooling, or run the .NET summariser against any JSON that matches the dossier shape.
+
+---
+
+## Install and run
+
+There is nothing to install. Clone the repository and run the modules in place.
+
+Python core (requires Python 3.11+):
+
+```bash
+# structural stats for the bundled fixture
+python -m verityflow graph -i examples/research-notes.json
+
+# full score report
+python -m verityflow score -i examples/research-notes.json
+
+# a Markdown dossier
+python -m verityflow dossier -i examples/research-notes.json --title "Q3 Claims Audit"
+```
+
+.NET summariser (requires the .NET 9 SDK):
+
+```bash
+# build once
+dotnet build runtime/VerityFlow.Runtime.csproj -c Release --nologo
+
+# pipe a JSON dossier straight through the summariser
+python -m verityflow dossier -i examples/research-notes.json --format json \
+  | dotnet run --project runtime/VerityFlow.Runtime.csproj -c Release --no-build
+```
+
+The `Makefile` wraps all of this: `make graph`, `make score`, `make dossier`, `make summary`, `make build`, `make validate`.
+
+---
+
+## The data schema
+
+Input is a single JSON array of research notes (or an object with a `notes` array). Each note has the following shape. Every id is optional — omit it and VerityFlow synthesises a stable id by hashing the content, so the same input always produces the same graph.
+
+```jsonc
+{
+  "claim": {
+    "text": "Feature flags reduce rollback frequency.",   // required
+    "topic": "release-engineering",                        // default: "general"
+    "author": "",                                          // optional
+    "stance": "asserted"                                   // asserted | disputed | hypothesis
+  },
+  "sources": [
+    {
+      "title": "Progressive Delivery Benchmarks",          // required
+      "kind": "dataset",                                   // document | dataset | interview | webpage | book
+      "author": "DeployMetrics",
+      "year": 2023,
+      "publisher": "DeployMetrics",
+      "url": "https://deploymetrics.example/benchmarks",
+      "tier": "primary"                                    // primary | secondary | tertiary
+    }
+  ],
+  "quotations": [
+    {
+      "source_title": "Progressive Delivery Benchmarks",   // links quote to a source by title...
+      "text": "Pipelines with flags rolled back 42% less often.",
+      "locator": "fig 2"                                   // page / timestamp / paragraph
+    }
+  ],
+  "links": [
+    {
+      "quotation_text": "Pipelines with flags rolled back 42% less often.",
+      "relation": "supports",                              // supports | qualifies | context | refutes
+      "confidence": 0.85                                   // 0..1
+    }
+  ]
+}
+```
+
+**Reference resolution.** Quotations may reference their source by `source_id` or, more ergonomically, by `source_title`. Links may reference their quotation by `quotation_id` or by `quotation_text`. VerityFlow resolves the friendly forms into ids during parsing. If a reference cannot be resolved, the resulting edge is *dangling* and is reported by `validate` rather than crashing the pipeline.
+
+**Relation vocabulary and weights.** Each relation carries a signed weight that feeds support strength:
+
+| Relation | Weight | Meaning |
+| --- | --- | --- |
+| `supports` | `+1.0` | The quotation directly backs the claim. |
+| `qualifies` | `+0.5` | The quotation supports the claim under conditions. |
+| `context` | `+0.25` | The quotation provides background, not direct proof. |
+| `refutes` | `-1.0` | The quotation contradicts the claim. |
+
+An invalid relation is a hard error at parse time — the vocabulary is closed on purpose.
+
+---
+
+## Command reference
+
+All commands read from `--input`/`-i` (a file or `-` for stdin) and write to `--output`/`-o` (a file or `-` for stdout).
+
+### `graph`
+
+Compile notes and inspect the graph structure. The `--emit` flag selects what to print:
+
+- `stats` (default) — node/edge counts, relation and tier histograms, dangling/orphan counts, average quotations and sources per claim.
+- `adjacency` — a `claim_id → [source_id, ...]` map, handy for feeding external graph viewers.
+- `edges` — a flat edge list (`claim ← quotation ← source`) for tabular export.
+- `full` — the entire serialised graph (all nodes and links).
+
+### `score`
+
+Compute the full `ScoreReport`: graph-level coverage, mean diversity and mean support, plus a per-claim breakdown with `covered`, `contested`, `diversity`, `support_raw`, `support_index`, source/domain counts and supporting/refuting tallies.
+
+### `dossier`
+
+Assemble the human-facing evidence dossier. `--format markdown` (default) renders a self-contained report with a summary banner, a graph-at-a-glance table and a per-claim section that lists every quotation with its relation, confidence, source and tier. `--format json` emits the same content as a structured document — this is the exact input the .NET summariser expects. `--title` sets the report heading.
+
+### `validate`
+
+Structural pre-flight check. Reports dangling links (edges pointing at a missing claim or quotation) and orphan quotations (spans no link references). Exits `0` when the bundle is clean and `2` when anomalies are found, so it drops straight into a CI gate.
+
+---
+
+## Scoring algorithms in depth
+
+### Citation coverage
+
+Coverage is the fraction of claims that carry **at least one supporting (positive-weight) evidence link**. A claim backed only by `refutes` edges is *not* covered — it is contested. Formally, for a graph with claim set `C`:
+
+```
+coverage = |{ c ∈ C : ∃ link l on c with weight(l.relation) > 0 }| / |C|
+```
+
+Coverage is the bluntest metric and the first thing a reviewer should look at. A report at 60% coverage has, by definition, 40% of its claims resting on nothing.
+
+### Source diversity
+
+Diversity is the **normalised Shannon entropy** of the provenance *domains* behind a claim. A domain is derived from a source: the URL host if present (stripped of `www.`), else the publisher, else the author. For a claim whose supporting sources fall into domains with counts `n₁ … n_k` (total `N`):
+
+```
+H     = -Σ (nᵢ / N) · log₂(nᵢ / N)
+diversity = H / log₂(k)          for k > 1, else 0
+```
+
+The normalisation by `log₂(k)` maps diversity to `[0, 1]`: a claim cited by a single domain scores `0`; a claim cited equally by `k` distinct domains scores `1`. This is why in the bundled fixture the async-standups claim (three independent domains, one quote each) scores `1.0` while the feature-flags claim (two quotes, one domain) scores `0.0` — same quote count, very different provenance breadth.
+
+### Claim support strength
+
+Support strength condenses every link on a claim into a single bounded index. First it sums the signed, confidence-weighted relation weights:
+
+```
+raw = Σ  RELATION_WEIGHT(l.relation) · clamp(l.confidence, 0, 1)
+```
+
+Then it squashes `raw` through a logistic function so the index lives in `(0, 1)`:
+
+```
+support_index = 1 / (1 + e^(−raw))
+```
+
+The squashing gives three intuitive anchors: a claim with **no links** lands at exactly `0.5` (genuinely neutral), a **strongly supported** claim tends toward `1.0`, and a **strongly refuted** claim tends toward `0.0`. Because confidence multiplies the weight, a hedged `supports` at `0.6` confidence contributes less than a firm one at `0.95`.
+
+These three metrics are orthogonal by construction: coverage answers *is it cited at all*, diversity answers *is it cited broadly*, and support answers *how strong is the net evidence*. A claim can be covered but narrow (single-domain), or diverse but weak (lots of low-confidence qualifiers). The dossier verdict combines all three.
+
+---
+
+## The dossier format
+
+The dossier is where numbers become judgements. For each claim VerityFlow assigns a **verdict** from the interplay of coverage, contestation, support and diversity:
+
+| Verdict | Condition |
+| --- | --- |
+| `well-supported` | covered, `support_index ≥ 0.80`, and `≥ 2` provenance domains |
+| `supported` | covered, `support_index ≥ 0.60` |
+| `weakly-supported` | covered, but `support_index < 0.60` |
+| `contested` | has both supporting and refuting links |
+| `unsupported` | no supporting link |
+| `refuted` | refuting links and no supporting link |
+
+The Markdown dossier opens with a summary banner (coverage, mean support, mean diversity), a graph-at-a-glance table, and then one section per claim — sorted by descending support so the strongest claims lead — with a verdict badge, the scores, and a table of every quotation, relation, confidence and source. The JSON dossier carries the identical information in a machine-readable tree, and is the contract consumed by the .NET summariser.
+
+---
+
+## The .NET summariser
+
+`VerityFlow.Runtime` is a companion, not a dependency. It reads a JSON dossier and produces an **executive summary**: verdict tallies, the weakest claims that need more citations, and a single **provenance health score** with a letter grade. The health score blends the three graph-level metrics:
+
+```
+health = 0.40 · coverage + 0.35 · mean_support + 0.25 · mean_diversity
+grade  = A (≥0.85) · B (≥0.70) · C (≥0.55) · D (≥0.40) · F (otherwise)
+```
+
+The weighting reflects editorial priorities: coverage first (an uncited claim is the worst failure), then support strength, then diversity as a tie-breaker on rigour. The runtime exits `2` on an `F` grade, which lets you wire it into a publication gate. Output is `--format text` (a terminal-friendly report) or `--format json` (structured, for dashboards).
+
+---
+
+## CLI recipes
+
+**Audit a report before publishing.** Fail the build if any claim is uncited:
+
+```bash
+python -m verityflow validate -i notes.json && \
+python -m verityflow dossier -i notes.json --format json \
+  | dotnet run --project runtime/VerityFlow.Runtime.csproj -c Release --no-build
+# non-zero exit from either step blocks the publish
+```
+
+**Export the graph skeleton for visualisation:**
+
+```bash
+python -m verityflow graph -i notes.json --emit adjacency -o graph-adjacency.json
+python -m verityflow graph -i notes.json --emit edges -o graph-edges.json
+```
+
+**Produce a reviewer-ready Markdown dossier with a custom title:**
+
+```bash
+python -m verityflow dossier -i notes.json --title "Whitepaper v2 Evidence" -o dossier.md
+```
+
+**Pipe everything through stdin/stdout** (no temp files):
+
+```bash
+cat notes.json | python -m verityflow dossier --format json \
+  | dotnet run --project runtime/VerityFlow.Runtime.csproj -c Release --no-build -- --format json
+```
+
+**Find your weakest claims fast** — the summariser's text output lists the five lowest-support claims with their quote counts.
+
+---
+
+## Operations and exit codes
+
+VerityFlow is a batch tool: it reads, computes, writes and exits. It has no daemon, no state on disk beyond what you pass it, and makes no network calls.
+
+| Component | Exit `0` | Exit `1` | Exit `2` |
+| --- | --- | --- | --- |
+| `verityflow` (most commands) | success | bad input / invalid relation | — |
+| `verityflow validate` | clean bundle | bad input | anomalies found |
+| `VerityFlow.Runtime` | grade ≥ D | read/parse error | grade F |
+
+Because both halves signal failure through exit codes, the pipeline composes cleanly with `&&` and with CI job steps. All parse errors are written to `stderr` with an `error:` prefix so stdout stays a clean data channel.
+
+---
+
+## Extension seams
+
+VerityFlow is small on purpose, but three seams are designed for extension:
+
+1. **Relation vocabulary.** `RELATION_WEIGHTS` in `model.py` is the single source of truth for what relations exist and how they weigh. Add a `background` or `methodology` relation there and it flows through parsing, scoring and dossiers automatically.
+
+2. **Domain derivation.** `Source.domain()` decides what counts as an independent provenance source for diversity. Swap the host-based heuristic for an org-registry lookup, an ISSN normaliser, or a domain-blocklist and diversity scoring adapts with no other change.
+
+3. **Verdict policy.** The `_verdict` function in `dossier.py` and the `Grade`/health-weighting in `Summariser.cs` encode editorial policy. These are the knobs to turn when a team wants stricter thresholds (e.g. require three domains for `well-supported`) without touching the graph or scoring layers.
+
+Because each pipeline stage is a pure function over the previous stage's data structures, you can also splice in your own stage — for instance, a de-duplication pass over near-identical quotations — between `build_graph` and `score_graph`.
+
+---
+
+## Design principles
+
+- **Dependency-free, forever.** The Python core imports only `hashlib`, `re`, `math`, `json`, `argparse` and `dataclasses`. The .NET runtime uses only `System.Text.Json`. No lockfiles, no supply chain.
+- **Deterministic ids.** Every synthesised id is a content hash, so graphs are reproducible and diff-friendly across runs and machines.
+- **Fail soft on structure, hard on vocabulary.** Dangling references are reported, not fatal — you can inspect a half-wired bundle. An unknown relation is fatal — the vocabulary is a contract.
+- **Two runtimes, one contract.** The JSON dossier is the seam between Python and .NET. Either half is useful alone.
+
+---
+
+## Glossary
+
+- **Claim** — an assertion under scrutiny; the thing evidence is marshalled for or against.
+- **Source** — a citable artefact (paper, dataset, interview, webpage, book), tagged with a tier.
+- **Quotation** — a verbatim span lifted from exactly one source, optionally with a locator.
+- **Evidence link** — a typed, confidence-weighted edge from a quotation to a claim.
+- **Research note** — the ingestion unit: one claim plus its sources, quotations and links.
+- **Provenance graph** — the compiled, de-duplicated directed graph over all notes.
+- **Provenance domain** — the coarse origin of a source (URL host, publisher or author) used for diversity.
+- **Citation coverage** — fraction of claims with at least one supporting link.
+- **Source diversity** — normalised Shannon entropy over the domains backing a claim.
+- **Support index** — logistic-squashed, confidence-weighted net support in `(0, 1)`.
+- **Verdict** — the categorical judgement (`well-supported` … `refuted`) assigned per claim.
+- **Dossier** — the human/machine deliverable pairing verdicts with the underlying evidence.
+- **Provenance health** — the .NET summariser's blended, graded score for a whole dossier.
+- **Dangling link** — an edge whose claim or quotation is missing from the graph.
+- **Orphan quotation** — a quotation no link references.
+
+---
+
+VerityFlow is licensed under the Apache License 2.0. See [`LICENSE`](LICENSE), and [`CONTRIBUTING.md`](CONTRIBUTING.md) if you would like to help.
