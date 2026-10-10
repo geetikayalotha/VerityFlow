@@ -13,3 +13,34 @@ from .model import (
     Source,
     Quotation,
     EvidenceLink,
+    ResearchNote,
+    ProvenanceGraph,
+)
+from .graph import build_graph, GraphStats
+from .scoring import (
+    citation_coverage,
+    source_diversity,
+    claim_support_strength,
+    ScoreReport,
+)
+from .dossier import build_dossier, render_markdown, render_json
+
+__all__ = [
+    "Claim",
+    "Source",
+    "Quotation",
+    "EvidenceLink",
+    "ResearchNote",
+    "ProvenanceGraph",
+    "build_graph",
+    "GraphStats",
+    "citation_coverage",
+    "source_diversity",
+    "claim_support_strength",
+    "ScoreReport",
+    "build_dossier",
+    "render_markdown",
+    "render_json",
+]
+
+__version__ = "0.4.0"
