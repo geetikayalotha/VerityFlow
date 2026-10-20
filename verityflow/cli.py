@@ -18,6 +18,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from pathlib import Path
 from typing import Any, List
 
 from .graph import build_graph, compute_stats, to_adjacency, to_edge_list
@@ -44,7 +45,10 @@ def _write_output(path: str, text: str) -> None:
         if not text.endswith("\n"):
             sys.stdout.write("\n")
         return
-    with open(path, "w", encoding="utf-8") as fh:
+    target = Path(path)
+    if target.parent and not target.parent.exists():
+        target.parent.mkdir(parents=True, exist_ok=True)
+    with open(target, "w", encoding="utf-8") as fh:
         fh.write(text)
 
 
@@ -149,18 +153,22 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: List[str] | None = None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
     parser = build_parser()
-    args = parser.parse_args(argv)
-    if args.version:
+    if "--version" in argv:
         from . import __version__
 
         print(f"verityflow {__version__}")
         return 0
+    args = parser.parse_args(argv)
     if not getattr(args, "command", None):
         parser.print_help()
         return 1
     try:
         return args.func(args)
+    except OSError as exc:
+        sys.stderr.write(f"error: {exc}\n")
+        return 2
     except (ValueError, KeyError) as exc:
         sys.stderr.write(f"error: {exc}\n")
         return 1
