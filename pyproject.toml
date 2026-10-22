@@ -8,3 +8,5 @@ license = {text = "Apache-2.0"}
 [tool.verityflow]
 report-format = "json"
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
