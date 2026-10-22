@@ -27,10 +27,15 @@ from .dossier import build_dossier, render_json, render_markdown
 
 
 def _read_input(path: str) -> Any:
+    source = "<stdin>" if (path == "-" or not path) else path
     if path == "-" or not path:
-        return json.load(sys.stdin)
-    with open(path, "r", encoding="utf-8") as fh:
-        return json.load(fh)
+        payload = json.load(sys.stdin)
+    else:
+        with open(path, "r", encoding="utf-8") as fh:
+            payload = json.load(fh)
+    if not isinstance(payload, dict):
+        raise ValueError(f"{source}: expected a JSON object, got {type(payload).__name__}")
+    return payload
 
 
 def _write_output(path: str, text: str) -> None:

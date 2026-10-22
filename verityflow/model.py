@@ -18,6 +18,8 @@ standard library only.
 
 from __future__ import annotations
 
+import math
+
 import hashlib
 import re
 from dataclasses import dataclass, field, asdict
@@ -202,7 +204,7 @@ class ResearchNote:
                     claim_id=claim.id,
                     quotation_id=qid or "",
                     relation=relation,
-                    confidence=float(l.get("confidence", 1.0)),
+                    confidence=_confidence(l.get("confidence", 1.0), l.get("id") or ""),
                 )
             )
 
@@ -280,3 +282,18 @@ class ProvenanceGraph:
 def load_notes(payload: Iterable[Dict[str, Any]]) -> List[ResearchNote]:
     """Parse an iterable of raw note dicts into :class:`ResearchNote` objects."""
     return [ResearchNote.from_dict(item) for item in payload]
+
+
+def _confidence(value, link_id: str) -> float:
+    """A weight must be a finite number in [0, 1]; null keeps the documented default."""
+    if value is None:
+        return 1.0
+    try:
+        number = float(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"link {link_id!r} has a non-numeric confidence: {value!r}") from exc
+    if not math.isfinite(number) or not 0.0 <= number <= 1.0:
+        raise ValueError(
+            f"link {link_id!r} confidence must be finite and in [0, 1], got {value!r}"
+        )
+    return number
