@@ -14,3 +14,7 @@ demo:
 clean:
 	@echo Cleaning generated report artifacts
 
+test:
+	python -m unittest discover -s tests -v
+
+.PHONY: test
